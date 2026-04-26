@@ -1,80 +1,128 @@
+// 🔐 LOGIN PROTECTION
+if (localStorage.getItem("loggedIn") !== "true") {
+  window.location.href = "login.html";
+}
+
 const API_URL = "https://real-time-vehicle-tracking-8lpk.onrender.com/vehicles";
 
-// Table body
-const tableBody = document.getElementById("table-body");
+let markers = {};
+let paths = {};
+let chart;
 
-// Initialize map (Pune default)
-const map = L.map("map").setView([18.5204, 73.8567], 11);
+// 🚗 Car icon
+const carIcon = L.icon({
+  iconUrl: "https://cdn-icons-png.flaticon.com/512/744/744465.png",
+  iconSize: [32, 32],
+  iconAnchor: [16, 32]
+});
 
-// Add map tiles
-L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-  attribution: "© OpenStreetMap contributors",
+// 🗺️ Better dark map (professional look)
+const map = L.map("map").setView([18.5204, 73.8567], 12);
+
+L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png", {
+  attribution: "&copy; OpenStreetMap & CartoDB"
 }).addTo(map);
 
-// Store markers
-let markers = {};
+// 🎨 Route colors
+const colors = ["red", "blue", "green", "orange", "purple"];
 
-// Fetch vehicles from API
-async function fetchVehicles() {
-  try {
-    const response = await fetch(API_URL);
+// 📊 Chart setup
+function initChart() {
+  const ctx = document.getElementById("speedChart").getContext("2d");
 
-    if (!response.ok) {
-      throw new Error("API not responding");
+  chart = new Chart(ctx, {
+    type: "bar",
+    data: {
+      labels: [],
+      datasets: [{
+        label: "Speed",
+        data: []
+      }]
     }
+  });
+}
 
-    const vehicles = await response.json();
+initChart();
 
-    // Clear table
-    tableBody.innerHTML = "";
+// 🔄 Fetch data
+async function fetchData() {
+  try {
+    const res = await fetch(API_URL);
+    const data = await res.json();
 
-    vehicles.forEach((v) => {
-      // -----------------------------
-      // TABLE DATA
-      // -----------------------------
-      const status = v.speed > 80 ? "Over Speed ⚠️" : "Normal";
+    const table = document.getElementById("table-body");
+    table.innerHTML = "";
 
-      const row = `
-        <tr>
+    let names = [];
+    let speeds = [];
+
+    data.forEach((v, i) => {
+
+      // 🚨 status
+      let status = v.speed > 80 ? "Over Speed ⚠️" : "Normal";
+      let rowClass = v.speed > 80 ? "overspeed-row" : "";
+
+      // 📋 table
+      table.innerHTML += `
+        <tr class="${rowClass}">
           <td>${v.id}</td>
           <td>${v.name}</td>
           <td>${v.driver}</td>
-          <td>${v.speed} km/h</td>
+          <td>${v.speed}</td>
           <td>${status}</td>
           <td>${v.lat.toFixed(4)}</td>
           <td>${v.lng.toFixed(4)}</td>
         </tr>
       `;
 
-      tableBody.innerHTML += row;
+      names.push(v.name);
+      speeds.push(v.speed);
 
-      // -----------------------------
-      // MAP MARKERS
-      // -----------------------------
-      if (markers[v.id]) {
-        // Update existing marker
-        markers[v.id].setLatLng([v.lat, v.lng]);
-      } else {
-        // Create new marker
-        const marker = L.marker([v.lat, v.lng])
+      // 🚗 marker
+      if (!markers[v.id]) {
+        markers[v.id] = L.marker([v.lat, v.lng], { icon: carIcon })
           .addTo(map)
-          .bindPopup(
-            `<b>${v.name}</b><br>
-             Driver: ${v.driver}<br>
-             Speed: ${v.speed} km/h`
-          );
-
-        markers[v.id] = marker;
+          .bindPopup(`${v.name} (${v.driver})`);
+      } else {
+        markers[v.id].setLatLng([v.lat, v.lng]);
       }
+
+      // 📍 route tracking
+      if (!paths[v.id]) {
+        paths[v.id] = L.polyline([[v.lat, v.lng]], {
+          color: colors[i % colors.length],
+          weight: 4
+        }).addTo(map);
+      } else {
+        paths[v.id].addLatLng([v.lat, v.lng]);
+      }
+
+      // popup update
+      markers[v.id].setPopupContent(
+        `${v.name}<br>Driver: ${v.driver}<br>Speed: ${v.speed}`
+      );
     });
 
-  } catch (error) {
-    console.error("Error fetching vehicles:", error);
+    // ⏱ last update
+    document.getElementById("lastUpdate").innerText =
+      "Last Updated: " + new Date().toLocaleTimeString();
+
+    // 📊 update chart
+    chart.data.labels = names;
+    chart.data.datasets[0].data = speeds;
+    chart.update();
+
+  } catch (err) {
+    console.error(err);
   }
 }
 
-// Initial load
-fetchVehicles();
+// 🔁 update every 10 sec
+fetchData();
+setInterval(fetchData, 10000);
 
-// Auto update every 3 seconds
-setInterval(fetchVehicles, 10000);
+// 🔓 logout
+function logout() {
+  localStorage.removeItem("loggedIn");
+  window.location.href = "login.html";
+}

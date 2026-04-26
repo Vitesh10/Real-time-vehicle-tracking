@@ -1,21 +1,90 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>Vehicle Dashboard</title>
+  <meta charset="UTF-8">
+  <title>Vehicle Tracking Dashboard</title>
 
+  <!-- CSS -->
   <link rel="stylesheet" href="style.css">
+
+  <!-- Leaflet CSS (REQUIRED for map) -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: #1e2a38;
+      color: white;
+      text-align: center;
+    }
+
+    h1 {
+      padding: 20px;
+    }
+
+    button {
+      margin: 10px;
+      padding: 10px 15px;
+      border: none;
+      cursor: pointer;
+      background-color: #007bff;
+      color: white;
+      border-radius: 5px;
+    }
+
+    button:hover {
+      background-color: #0056b3;
+    }
+
+    table {
+      width: 90%;
+      margin: auto;
+      border-collapse: collapse;
+      margin-top: 20px;
+      background: #2c3e50;
+    }
+
+    th, td {
+      padding: 10px;
+      border: 1px solid #444;
+    }
+
+    th {
+      background-color: #007bff;
+    }
+
+    .overspeed-row {
+      background-color: #ff4d4d !important;
+      color: white;
+    }
+
+    #map {
+      height: 400px;
+      margin: 20px;
+      border-radius: 10px;
+    }
+
+    #speedChart {
+      width: 80%;
+      margin: 20px auto;
+    }
+  </style>
 </head>
 
 <body>
 
-<h1>Vehicle Tracking Dashboard</h1>
+<h1>🚗 Vehicle Tracking Dashboard</h1>
 
+<!-- Buttons -->
 <button onclick="logout()">Logout</button>
-<button onclick="enableNotifications()">Enable Alerts</button>
+<button onclick="enableNotifications()">Enable Alerts 🔔</button>
 
+<!-- Last Update -->
 <p id="lastUpdate"></p>
 
+<!-- TABLE -->
 <table>
   <thead>
     <tr>
@@ -28,15 +97,26 @@
       <th>Lng</th>
     </tr>
   </thead>
-  <tbody id="table-body"></tbody>
+
+  <!-- ✅ FIXED ID (VERY IMPORTANT) -->
+  <tbody id="vehicleTable"></tbody>
 </table>
 
+<!-- CHART -->
 <canvas id="speedChart"></canvas>
 
-<div id="map" style="height: 400px; margin-top: 20px;"></div>
+<!-- MAP -->
+<div id="map"></div>
 
+<!-- SCRIPTS (ORDER IS IMPORTANT) -->
+
+<!-- Chart.js -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<!-- Leaflet JS -->
 <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+
+<!-- Your JS -->
 <script src="dashboard.js"></script>
 
 </body>
