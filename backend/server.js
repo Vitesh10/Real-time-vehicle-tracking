@@ -1,8 +1,13 @@
 const express = require("express");
 const cors = require("cors");
 
-const app = express();
+const app = express();   // ✅ FIRST
 app.use(cors());
+
+// ✅ NOW routes
+app.get("/test", (req, res) => {
+  res.send("TEST WORKING");
+});
 
 let vehicles = [
   { id: 1, name: "Car A", driver: "Rahul", speed: 60, lat: 18.52, lng: 73.85 },
@@ -12,14 +17,7 @@ let vehicles = [
   { id: 5, name: "Car E", driver: "Vijay", speed: 70, lat: 22.57, lng: 88.36 }
 ];
 
-// 🔁 Update every 8 sec
-setInterval(() => {
-  vehicles.forEach(v => {
-    v.speed = Math.floor(Math.random() * 120);
-    v.lat += (Math.random() - 0.5) * 0.01;
-    v.lng += (Math.random() - 0.5) * 0.01;
-  });
-}, 8000);
+// update logic...
 
 app.get("/", (req, res) => {
   res.send("Backend is running 🚀");
