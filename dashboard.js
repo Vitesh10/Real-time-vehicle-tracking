@@ -71,7 +71,7 @@ initMap();
 // ================= FETCH DATA =================
 async function fetchData() {
   try {
-    const res = await fetch("http://localhost:3000/vehicles");
+    const res = await fetch("https://real-time-vehicle-tracking-81pk.onrender.com/vehicles");
     const data = await res.json();
 
     const table = document.getElementById("vehicleTable");
