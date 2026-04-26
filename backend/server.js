@@ -26,6 +26,7 @@ app.get("/", (req, res) => {
 });
 
 app.get("/vehicles", (req, res) => {
+  console.log("Vehicles API hit");
   res.json(vehicles);
 });
 
