@@ -9,10 +9,10 @@ let chart;
 // 🚗 ADVANCED VEHICLE ICON
 // ==============================
 const carIcon = L.icon({
-  iconUrl: "https://cdn-icons-png.flaticon.com/512/3202/3202926.png",
+  iconUrl: "https://cdn-icons-png.flaticon.com/512/854/854878.png",
   iconSize: [40, 40],
   iconAnchor: [20, 40],
-  popupAnchor: [0, -35]
+  popupAnchor: [0, -30]
 });
 
 // ==============================
