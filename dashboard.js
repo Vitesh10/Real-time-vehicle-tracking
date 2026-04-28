@@ -165,3 +165,6 @@ function logout() {
   localStorage.removeItem("loggedIn");
   window.location.href = "login.html";
 }
+function downloadReport() {
+  window.open("https://real-time-vehicle-tracking-8lpk.onrender.com/report", "_blank");
+}
