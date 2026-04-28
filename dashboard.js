@@ -1,5 +1,5 @@
 
-const API_URL = "https://real-time-vehicle-tracking-8lpk.onrender.com/vehicles";
+const API_URL = "/vehicles";
 
 let markers = {};
 let paths = {};
