@@ -2,6 +2,7 @@ const express = require("express");
 const cors = require("cors");
 const path = require("path");
 const fs = require("fs");
+const PDFDocument = require("pdfkit");
 
 const app = express();
 app.use(cors());
@@ -9,6 +10,7 @@ app.use(express.json());
 
 // ✅ Serve frontend files
 app.use(express.static(__dirname));
+
 
 // ===============================
 // 🚗 Dummy Vehicle Data
@@ -21,6 +23,7 @@ let vehicles = [
   { id: 5, name: "Car E", driver: "Vijay", speed: 70, lat: 22.57, lng: 88.36 }
 ];
 
+
 // ===============================
 // 🔄 Simulate Real-time Updates
 // ===============================
@@ -32,6 +35,7 @@ setInterval(() => {
   });
 }, 8000);
 
+
 // ===============================
 // 🧪 Test Route
 // ===============================
@@ -39,46 +43,22 @@ app.get("/test", (req, res) => {
   res.send("TEST WORKING 🚀");
 });
 
+
 // ===============================
-// 🌐 Root Route (Login Page)
+// 🌐 Root Route
 // ===============================
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "login.html"));
 });
 
+
 // ===============================
 // 🚗 Vehicles API
 // ===============================
 app.get("/vehicles", (req, res) => {
-  console.log("Vehicles API hit");
   res.json(vehicles);
 });
 
-// ===============================
-// 📄 Report API (Download JSON)
-// ===============================
-app.get("/report", (req, res) => {
-  try {
-    const reportData = vehicles.map(v => ({
-      ID: v.id,
-      Vehicle: v.name,
-      Driver: v.driver,
-      Speed: v.speed,
-      Latitude: v.lat,
-      Longitude: v.lng
-    }));
-
-    const filePath = path.join(__dirname, "vehicle_report.json");
-
-    fs.writeFileSync(filePath, JSON.stringify(reportData, null, 2));
-
-    res.download(filePath, "vehicle_report.json");
-
-  } catch (error) {
-    console.error("Report generation error:", error);
-    res.status(500).send("Error generating report");
-  }
-});
 
 // ===============================
 // 📊 Dashboard Route
@@ -87,12 +67,84 @@ app.get("/dashboard", (req, res) => {
   res.sendFile(path.join(__dirname, "dashboard.html"));
 });
 
+
 // ===============================
-// ❌ 404 Handler
+// 📄 PDF REPORT API (NEW)
+// ===============================
+app.get("/report", (req, res) => {
+  const doc = new PDFDocument({ margin: 30 });
+
+  const filePath = path.join(__dirname, "vehicle_report.pdf");
+  const stream = fs.createWriteStream(filePath);
+
+  doc.pipe(stream);
+
+  // 🏷️ Title
+  doc
+    .fontSize(20)
+    .text("Vehicle Tracking Report", { align: "center" })
+    .moveDown();
+
+  doc
+    .fontSize(10)
+    .text(`Generated At: ${new Date().toLocaleString()}`, {
+      align: "right",
+    });
+
+  doc.moveDown();
+
+  // 📊 Table Header
+  const tableTop = 120;
+
+  doc
+    .fontSize(12)
+    .text("ID", 50, tableTop)
+    .text("Vehicle", 100, tableTop)
+    .text("Driver", 200, tableTop)
+    .text("Speed", 300, tableTop)
+    .text("Lat", 380, tableTop)
+    .text("Lng", 460, tableTop);
+
+  doc.moveTo(50, tableTop + 15).lineTo(550, tableTop + 15).stroke();
+
+  // 🚗 Table Data
+  let y = tableTop + 25;
+
+  vehicles.forEach(v => {
+    doc
+      .fontSize(10)
+      .text(v.id, 50, y)
+      .text(v.name, 100, y)
+      .text(v.driver, 200, y)
+      .text(v.speed + " km/h", 300, y)
+      .text(v.lat.toFixed(4), 380, y)
+      .text(v.lng.toFixed(4), 460, y);
+
+    y += 20;
+
+    // Page break
+    if (y > 750) {
+      doc.addPage();
+      y = 50;
+    }
+  });
+
+  // ✅ Finish
+  doc.end();
+
+  stream.on("finish", () => {
+    res.download(filePath, "vehicle_report.pdf");
+  });
+});
+
+
+// ===============================
+// ❌ 404 Handler (ALWAYS LAST)
 // ===============================
 app.use((req, res) => {
   res.status(404).send("Route not found ❌");
 });
+
 
 // ===============================
 // 🚀 Start Server
